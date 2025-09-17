@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block content %}
+    <h2>{{ post.title }}</h2>
+    <p>Категория: {{ post.category.title }}</p>
+    <div>{{ post.body|safe }}</div>
+
+    {% if user == post.author %}
+        <a href="{% url 'post_update' post.pk %}" class="btn btn-warning">Редактировать</a>
+        <a href="{% url 'post_delete' post.pk %}" class="btn btn-danger">Удалить</a>
+    {% endif %}
+
+    <hr>
+    <h3>Отклики</h3>
+    {% for reply in post.replies.all %}
+        <div class="border p-2 mb-2 {% if reply.accepted %}bg-success text-white{% endif %}">
+            <strong>{{ reply.author.username }}</strong>: {{ reply.text }}<br>
+            {% if user == post.author and not reply.accepted %}
+                <form method="post" action="{% url 'reply_accept' reply.pk %}">
+                    {% csrf_token %}
+                    <button class="btn btn-sm btn-success" type="submit">Принять</button>
+                </form>
+            {% endif %}
+        </div>
+    {% empty %}
+        <p>Откликов пока нет.</p>
+    {% endfor %}
+
+    {% if user.is_authenticated %}
+        <hr>
+        <h3>Оставить отклик</h3>
+        <form method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit" class="btn btn-primary">Отправить</button>
+        </form>
+    {% else %}
+        <p>Чтобы оставить отклик, <a href="{% url 'account_login' %}">войдите</a> в аккаунт.</p>
+    {% endif %}
+{% endblock %}

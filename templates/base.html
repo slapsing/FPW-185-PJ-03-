@@ -1,4 +1,7 @@
+{% load static %}
+
 <!DOCTYPE html>
+
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
@@ -14,7 +17,16 @@
             <ul class="navbar-nav ms-auto">
                 {% if user.is_authenticated %}
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'profile' %}"> {{ user.username }}</a>
+                        <a class="nav-link" href="{% url 'profile' %}">{{ user.username }}</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'post_create' %}">Создать пост</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'post_ranking' %}">Рейтинг постов</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'my_replies' %}">Мои отклики</a>
                     </li>
                     <li class="nav-item">
                         <a class="btn btn-outline-danger btn-sm ms-2" href="{% url 'account_logout' %}">Выход</a>
@@ -27,11 +39,11 @@
                         <a class="btn btn-outline-success btn-sm ms-2" href="{% url 'account_signup' %}">Регистрация</a>
                     </li>
                 {% endif %}
-
             </ul>
         </div>
     </div>
 </nav>
+
 
 <!-- Контент -->
 <main>
@@ -42,5 +54,7 @@
 <footer class="text-center py-3">
     <small>&copy; 2025 MMORPGFAN</small>
 </footer>
+<script src="{% static 'js/infinite_scroll.js' %}"></script>
+
 </body>
 </html>

@@ -1,0 +1,10 @@
+Новый отклик на ваше объявление
+
+Объявление: {{ post.title }}
+
+От: {{ reply.author.username }} | {{ reply.created_at|date:"d.m.Y H:i" }}
+
+Текст отклика:
+{{ reply.text }}
+
+Перейти к объявлению: {{ site }}
