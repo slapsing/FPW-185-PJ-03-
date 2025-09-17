@@ -1,8 +1,18 @@
-from django.shortcuts import render
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.core.paginator import Paginator
+from django.db.models import Count
+from django.http import HttpResponseForbidden, JsonResponse
+from django.shortcuts import render, get_object_or_404, redirect
+from django.template.loader import render_to_string
+from django.urls import reverse_lazy, reverse
+from django.views.generic import CreateView, UpdateView, DeleteView, ListView, DetailView
+from django.views.generic.edit import FormMixin
 from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
+from .forms import PostForm, ReplyForm
 from .models import Post, Reply, Category, Subscription
 from .serializers import (
     PostListSerializer, PostDetailSerializer, PostCreateSerializer,
@@ -10,9 +20,93 @@ from .serializers import (
 )
 
 
-
 def index(request):
-    return render(request, "index.html")
+    posts = Post.objects.filter(published=True).order_by('-created_at')
+    paginator = Paginator(posts, 5)
+    page_number = request.GET.get('page', 1)
+    page_obj = paginator.get_page(page_number)
+
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        html = render_to_string('board/post_list_ajax.html', {'posts': page_obj})
+        return JsonResponse({'html': html})
+
+    return render(request, 'index.html', {'posts': page_obj})
+
+
+class PostCreateView(LoginRequiredMixin, CreateView):
+    model = Post
+    form_class = PostForm
+    template_name = "board/post_form.html"
+
+    def form_valid(self, form):
+        form.instance.author = self.request.user
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse_lazy("post_detail", kwargs={"pk": self.object.pk})
+
+
+class PostUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+    model = Post
+    form_class = PostForm
+    template_name = "board/post_form.html"
+
+    def test_func(self):
+        post = self.get_object()
+        return post.author == self.request.user
+
+    def get_success_url(self):
+        return reverse_lazy("post_detail", kwargs={"pk": self.object.pk})
+
+
+class PostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
+    model = Post
+    template_name = "board/post_confirm_delete.html"
+    success_url = reverse_lazy("index")
+
+    def test_func(self):
+        post = self.get_object()
+        return post.author == self.request.user
+
+
+class PostListView(ListView):
+    model = Post
+    template_name = "board/post_list.html"
+    context_object_name = "posts"
+    queryset = Post.objects.filter(published=True)
+    paginate_by = 10
+
+
+class PostDetailView(FormMixin, DetailView):
+    model = Post
+    template_name = "board/post_detail.html"
+    context_object_name = "post"
+    form_class = ReplyForm
+
+    def get_success_url(self):
+        return reverse("post_detail", kwargs={"pk": self.object.pk})
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        form = self.get_form()
+        if form.is_valid():
+            reply = form.save(commit=False)
+            reply.author = request.user
+            reply.post = self.object
+            reply.save()
+            return redirect(self.get_success_url())
+        return self.form_invalid(form)
+
+
+@login_required
+def accept_reply(request, pk):
+    reply = get_object_or_404(Reply, pk=pk)
+    if reply.post.author != request.user:
+        return HttpResponseForbidden("Вы не можете принимать этот отклик.")
+    reply.accepted = True
+    reply.save()
+    return redirect("post_detail", pk=reply.post.pk)
+
 
 class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Category.objects.all()
@@ -73,3 +167,33 @@ class SubscriptionViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
+
+
+@login_required
+def my_replies_view(request):
+    posts = Post.objects.filter(author=request.user)
+    post_id = request.GET.get("post")
+    if post_id:
+        replies = Reply.objects.filter(post_id=post_id, post__author=request.user, deleted=False)
+    else:
+        replies = Reply.objects.filter(post__author=request.user, deleted=False)
+    return render(request, "board/my_replies.html", {"posts": posts, "replies": replies})
+
+
+@login_required
+def delete_reply(request, reply_id):
+    reply = get_object_or_404(Reply, id=reply_id, post__author=request.user)
+    reply.deleted = True
+    reply.save()
+    return redirect('my_replies')
+
+
+class PostRankingView(ListView):
+    model = Post
+    template_name = "board/post_ranking.html"
+    context_object_name = "posts"
+
+    def get_queryset(self):
+        return Post.objects.filter(published=True).annotate(
+            num_replies=Count("replies")
+        ).order_by("-num_replies")
