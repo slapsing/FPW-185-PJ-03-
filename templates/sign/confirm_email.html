@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+{% block content %}
+    <div class="container py-5 text-center">
+        <h3>Email подтверждён!</h3>
+        <p>Ваш аккаунт активирован. Теперь вы можете войти на сайт.</p>
+        <a href="{% url 'account_login' %}" class="btn btn-primary mt-3">Войти</a>
+    </div>
+{% endblock %}

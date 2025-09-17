@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <div class="container d-flex justify-content-center align-items-center" style="min-height: 80vh;">
+        <div class="card shadow-lg p-4 rounded-4" style="max-width: 500px; width: 100%;">
+            <h3 class="text-center mb-4">Email подтверждён!</h3>
+            <p>Ваш адрес электронной почты успешно подтверждён. Теперь вы можете войти на сайт.</p>
+            <p class="text-center mt-3">
+                <a href="{% url 'account_login' %}" class="btn btn-success">Войти</a>
+            </p>
+        </div>
+    </div>
+{% endblock %}

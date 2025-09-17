@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container d-flex justify-content-center align-items-center" style="min-height: 80vh;">
+    <div class="card shadow-lg p-4 rounded-4" style="max-width: 400px; width: 100%;">
+        <h4 class="text-center mb-4">Вы действительно хотите выйти?</h4>
+        <form method="post" action="{% url 'account_logout' %}">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger w-100">Выйти</button>
+        </form>
+        <p class="text-center mt-3">
+            <a href="{% url 'index' %}">Отмена</a>
+        </p>
+    </div>
+</div>
+{% endblock %}

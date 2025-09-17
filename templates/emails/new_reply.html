@@ -1,0 +1,10 @@
+<html>
+<body>
+<p>Привет {{ post.author.get_full_name|default:post.author.email }},</p>
+<p>Пользователь {{ reply.author.get_full_name|default:reply.author.email }} оставил отклик на ваше объявление
+    "<strong>{{ post.title }}</strong>".</p>
+<hr>
+<p>{{ reply.text }}</p>
+<p><a href="{{ site }}">Перейти к объявлению</a></p>
+</body>
+</html>

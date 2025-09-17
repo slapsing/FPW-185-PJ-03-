@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <div class="container d-flex justify-content-center align-items-center" style="min-height: 80vh;">
+        <div class="card shadow-lg p-4 rounded-4" style="max-width: 500px; width: 100%;">
+            <h3 class="text-center mb-4">Проверьте почту</h3>
+            <p>Мы отправили письмо с подтверждением на ваш адрес электронной почты. Перейдите по ссылке в письме, чтобы
+                активировать ваш аккаунт.</p>
+            <p class="text-center mt-3">
+                <a href="{% url 'account_login' %}" class="btn btn-primary">Войти</a>
+            </p>
+        </div>
+    </div>
+{% endblock %}

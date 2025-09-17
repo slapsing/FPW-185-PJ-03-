@@ -1,0 +1,21 @@
+{% load i18n %}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Подтвердите Email</title>
+</head>
+<body style="font-family: sans-serif; background-color: #f8f9fa; padding: 20px;">
+<div style="max-width: 600px; margin: auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+    <h2 style="color: #28a745;">Привет, {{ user.username }}!</h2>
+    <p>Спасибо за регистрацию на нашем сайте. Пожалуйста, подтвердите ваш адрес электронной почты, нажав кнопку
+        ниже:</p>
+    <a href="{{ activate_url }}"
+       style="display: inline-block; margin-top: 20px; background-color: #28a745; color: white; text-decoration: none; padding: 10px 20px; border-radius: 5px;">Подтвердить
+        Email</a>
+    <p style="margin-top: 20px; font-size: 0.9em; color: #555;">
+        Если вы не создавали аккаунт, просто проигнорируйте это письмо.
+    </p>
+</div>
+</body>
+</html>
