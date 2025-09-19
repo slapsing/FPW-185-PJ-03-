@@ -4,7 +4,7 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.template.loader import render_to_string
 
-from .models import Reply, Post, Subscription
+from .models import Reply, Post, Subscription, Notification
 
 
 @receiver(post_save, sender=Reply)
@@ -17,12 +17,18 @@ def notify_author_on_reply(sender, instance: Reply, created, **kwargs):
         html = render_to_string("emails/new_reply.html", {
             "post": post,
             "reply": instance,
-            "site": settings.DEFAULT_FROM_EMAIL,
+            "site": settings.SITE_URL,
         })
-        text = f"Новый отклик на объявление: {post.title}\n\n{instance.text}"
+        text = f"Новый отклик на объявление: {post.title}\n\n{instance.text}\n{settings.SITE_URL}/posts/{post.pk}/#replies"
         msg = EmailMultiAlternatives(subject, text, settings.DEFAULT_FROM_EMAIL, [post.author.email])
         msg.attach_alternative(html, "text/html")
         msg.send(fail_silently=True)
+
+    Notification.objects.create(
+        user=post.author,
+        message=f"Новый отклик на '{post.title}'",
+        url=f"/posts/{post.pk}/#replies"
+    )
 
 
 @receiver(post_save, sender=Reply)
@@ -34,12 +40,18 @@ def notify_when_reply_accepted(sender, instance: Reply, created, **kwargs):
         html = render_to_string("emails/reply_accepted.html", {
             "post": instance.post,
             "reply": instance,
-            "site": settings.DEFAULT_FROM_EMAIL,
+            "site": settings.SITE_URL,
         })
-        text = f"Ваш отклик принят для объявления: {instance.post.title}"
+        text = f"Ваш отклик принят для объявления: {instance.post.title}\n{settings.SITE_URL}/posts/{instance.post.pk}/#replies"
         msg = EmailMultiAlternatives(subject, text, settings.DEFAULT_FROM_EMAIL, [instance.author.email])
         msg.attach_alternative(html, "text/html")
         msg.send(fail_silently=True)
+
+        Notification.objects.create(
+            user=instance.author,
+            message=f"Ваш отклик принят: '{instance.post.title}'",
+            url=f"/posts/{instance.post.pk}/#replies"
+        )
 
 
 @receiver(post_save, sender=Post)

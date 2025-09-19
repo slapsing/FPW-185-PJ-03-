@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
 
+from celery.schedules import crontab
 from dotenv import load_dotenv
 
 #####
@@ -20,6 +21,7 @@ DEBUG = os.getenv("DEBUG").lower() in ("true", "1", "yes")
 ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", '').split(',')
 
 SITE_ID = os.getenv("SITE_ID")
+SITE_URL = os.getenv("SITE_URL")
 
 #####
 # base
@@ -47,13 +49,15 @@ INSTALLED_APPS += [
     "allauth.socialaccount",
     "dj_rest_auth.registration",
     # "modeltranslation",
-    "ckeditor",
+
 
     "drf_spectacular",
 
     "crispy_forms",
     "crispy_bootstrap5",
     'django.contrib.humanize',
+    "ckeditor",
+    "ckeditor_uploader",
 
 ]
 
@@ -64,6 +68,7 @@ INSTALLED_APPS += [
 INSTALLED_APPS += [
     'board.apps.BoardConfig',
     'sign',
+    'appointment',
 
 ]
 
@@ -99,6 +104,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'board.context_processors.unread_notifications_count',
             ],
         },
     },
@@ -109,7 +115,6 @@ TEMPLATES = [
 
 CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
 CRISPY_TEMPLATE_PACK = "bootstrap5"
-
 
 WSGI_APPLICATION = 'config.wsgi.application'
 
@@ -154,18 +159,59 @@ USE_TZ = True
 #####
 
 MODELTRANSLATION_DEFAULT_LANGUAGE = 'ru'
-MODELTRANSLATION_LANGUAGES = ('ru','en')
+MODELTRANSLATION_LANGUAGES = ('ru', 'en')
 
 #####
-# media/static
+# static
+#####
+
+STATIC_URL = 'static/'
+STATICFILES_DIRS = [BASE_DIR / "static"]
+STATIC_ROOT = BASE_DIR / "staticfiles"
+
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+#####
+# Media
 #####
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
-STATIC_URL = 'static/'
-STATICFILES_DIRS = [BASE_DIR / "static"]
 
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+#####
+# django-ckeditor
+#####
+
+CKEDITOR_UPLOAD_PATH = "uploads/"
+CKEDITOR_ALLOW_NONIMAGE_FILES = True
+CKEDITOR_IMAGE_BACKEND = "pillow"
+
+
+CKEDITOR_CONFIGS = {
+    'default': {
+        'toolbar': [
+            ['Bold', 'Italic', 'Underline', 'Strike', '-', 'RemoveFormat'],
+            ['Link', 'Unlink'],
+            ['Image', 'Table', 'HorizontalRule', 'SpecialChar'],
+            ['Embed', 'Youtube'],
+            ['NumberedList', 'BulletedList', '-', 'Outdent', 'Indent'],
+            ['Undo', 'Redo'],
+        ],
+        'height': 300,
+        'width': '100%',
+        'extraPlugins': ','.join([
+            'uploadimage',
+            'embed',
+            'autoembed',
+            'youtube',
+            'widget',
+            'lineutils',
+            'clipboard',
+        ]),
+        'removePlugins': 'stylesheetparser',
+    },
+}
+
 
 #####
 # Email backend
@@ -179,7 +225,6 @@ EMAIL_USE_SSL = os.getenv("EMAIL_USE_SSL", "False").lower() in ("true", "1", "ye
 DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL")
 ADMINS = os.getenv("ADMINS")
 SERVER_EMAIL = os.getenv("SERVER_EMAIL")
-
 
 #####
 # django-allauth
@@ -195,7 +240,6 @@ ACCOUNT_CONFIRM_EMAIL_ON_GET = True
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_USERNAME_REQUIRED = True
 
-
 ACCOUNT_EMAIL_CONFIRMATION_ANONYMOUS_REDIRECT_URL = "/account/login/"
 ACCOUNT_EMAIL_CONFIRMATION_AUTHENTICATED_REDIRECT_URL = "/profile/"
 
@@ -206,7 +250,6 @@ LOGIN_REDIRECT_URL = "/auth/profile/"
 LOGOUT_REDIRECT_URL = "/"
 
 EMAIL_CONFIRMATION_EXPIRE_DAYS = 1
-
 
 #####
 # REST framework + drf-spectacular
@@ -228,3 +271,23 @@ SPECTACULAR_SETTINGS = {
     "DESCRIPTION": "API для доски объявлений игрового сообщества",
     "VERSION": "1.0.0",
 }
+
+
+#####
+# celery+redis
+#####
+
+CELERY_BROKER_URL = 'redis://localhost:6379/0'
+CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = 'Europe/Moscow'
+
+CELERY_BEAT_SCHEDULE = {
+    'send-newsletter-every-monday-9am': {
+        'task': 'appointment.tasks.send_weekly_newsletter',
+        'schedule': crontab(hour=9, minute=0, day_of_week=1),
+    },
+}
+
