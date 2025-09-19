@@ -15,3 +15,5 @@ class ProfileEditForm(forms.ModelForm):
                 "placeholder": "Введите новое имя"
             })
         }
+
+

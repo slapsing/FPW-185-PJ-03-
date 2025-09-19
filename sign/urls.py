@@ -1,10 +1,11 @@
 from django.urls import path
 
+from . import views
 from .views import (
     profile_view,
     edit_profile,
     EmailVerificationSentView,
-    EmailConfirmView,
+    EmailConfirmView, author_card_view,
 )
 
 urlpatterns = [
@@ -16,4 +17,7 @@ urlpatterns = [
 
     path("profile/", profile_view, name="profile"),
     path("profile/edit/", edit_profile, name="account_edit_profile"),
+
+    path("profile/<int:user_id>/", author_card_view, name="author_card"),
+
 ]

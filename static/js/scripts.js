@@ -1,59 +1,50 @@
-/*!
-* Start Bootstrap - Creative v7.0.7 (https://startbootstrap.com/theme/creative)
-* Copyright 2013-2023 Start Bootstrap
-* Licensed under MIT (https://github.com/StartBootstrap/startbootstrap-creative/blob/master/LICENSE)
-*/
-//
-// Scripts
-// 
+let page = 2;
+let loading = false;
+let hasNext = true;
 
-window.addEventListener('DOMContentLoaded', event => {
-
-    // Navbar shrink function
-    var navbarShrink = function () {
-        const navbarCollapsible = document.body.querySelector('#mainNav');
-        if (!navbarCollapsible) {
-            return;
-        }
-        if (window.scrollY === 0) {
-            navbarCollapsible.classList.remove('navbar-shrink')
-        } else {
-            navbarCollapsible.classList.add('navbar-shrink')
-        }
-
-    };
-
-    // Shrink the navbar 
-    navbarShrink();
-
-    // Shrink the navbar when page is scrolled
-    document.addEventListener('scroll', navbarShrink);
-
-    // Activate Bootstrap scrollspy on the main nav element
-    const mainNav = document.body.querySelector('#mainNav');
-    if (mainNav) {
-        new bootstrap.ScrollSpy(document.body, {
-            target: '#mainNav',
-            rootMargin: '0px 0px -40%',
-        });
-    };
-
-    // Collapse responsive navbar when toggler is visible
-    const navbarToggler = document.body.querySelector('.navbar-toggler');
-    const responsiveNavItems = [].slice.call(
-        document.querySelectorAll('#navbarResponsive .nav-link')
-    );
-    responsiveNavItems.map(function (responsiveNavItem) {
-        responsiveNavItem.addEventListener('click', () => {
-            if (window.getComputedStyle(navbarToggler).display !== 'none') {
-                navbarToggler.click();
+function loadPage(p) {
+    if (!hasNext) return;
+    loading = true;
+    console.debug('Loading page', p);
+    $.ajax({
+        url: window.location.pathname,
+        data: {page: p},
+        method: 'GET',
+        dataType: 'json',
+        success: function (data) {
+            if (data && data.html && data.html.trim().length) {
+                $('#post-list').append(data.html);
+                page += 1;
+                hasNext = data.has_next;
+                if (!hasNext) {
+                    $(window).off('scroll.infinite');
+                    console.debug('No more content.');
+                }
+            } else {
+                $(window).off('scroll.infinite');
+                console.debug('No more content.');
             }
-        });
+        },
+        error: function (xhr, status, err) {
+            console.warn('JSON load failed, fallback to HTML request', status);
+            $.get(window.location.pathname + '?page=' + p, function (resp) {
+                if (resp && resp.trim().length) {
+                    $('#post-list').append(resp);
+                    page += 1;
+                } else {
+                    $(window).off('scroll.infinite');
+                }
+            });
+        },
+        complete: function () {
+            loading = false;
+        }
     });
+}
 
-    // Activate SimpleLightbox plugin for portfolio items
-    new SimpleLightbox({
-        elements: '#portfolio a.portfolio-box'
-    });
-
+$(window).on('scroll.infinite', function () {
+    if (loading) return;
+    if ($(window).scrollTop() + $(window).height() >= $(document).height() - 150) {
+        loadPage(page);
+    }
 });
