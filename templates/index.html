@@ -1,9 +1,14 @@
 {% extends "base.html" %}
-
 {% block title %}Главная{% endblock %}
 
 {% block content %}
     <div class="container py-5">
         <h1>Добро пожаловать в MMORPGFAN!</h1>
+    </div>
+
+    <div id="post-list"
+         data-page="{{ posts.number }}"
+         data-has-next="{% if posts.has_next %}1{% else %}0{% endif %}">
+        {% include 'board/post_list_ajax.html' with posts=posts %}
     </div>
 {% endblock %}

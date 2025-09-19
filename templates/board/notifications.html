@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block content %}
+    <h2>Мои уведомления</h2>
+    <ul class="list-group">
+        {% for n in notifications %}
+            <li class="list-group-item {% if not n.read %}list-group-item-info{% endif %}">
+                {{ n.message }}
+                {% if n.url %}
+                    <a href="{{ n.url }}">Перейти</a>
+                {% endif %}
+                {% if not n.read %}
+                    <a href="{% url 'notification_read' n.pk %}" class="btn btn-sm btn-secondary">Отметить
+                        прочитанным</a>
+                {% endif %}
+            </li>
+        {% empty %}
+            <li class="list-group-item">Нет уведомлений</li>
+        {% endfor %}
+    </ul>
+{% endblock %}

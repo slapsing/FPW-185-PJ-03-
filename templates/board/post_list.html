@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block content %}
+    <h2>Объявления</h2>
+    {% for post in posts %}
+        <div>
+            <h4><a href="{% url 'post_detail' post.pk %}">{{ post.title }}</a></h4>
+            <p>Категория: {{ post.category.title }}</p>
+        </div>
+    {% empty %}
+        <p>Объявлений пока нет.</p>
+    {% endfor %}
+{% endblock %}

@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+    <h2>{{ post.title }}</h2>
+    <p>
+        Категория: {{ post.category.title }} <br>
+        Автор: <a href="{% url 'author_card' post.author.id %}">
+        {{ post.author.username }}
+    </a>
+    </p>
+    <div>{{ post.body|safe }}</div>
+
+    {% if user == post.author %}
+        <a href="{% url 'post_update' post.pk %}" class="btn btn-warning">Редактировать</a>
+        <a href="{% url 'post_delete' post.pk %}" class="btn btn-danger">Удалить</a>
+    {% endif %}
+
+    <hr>
+    <h3>Отклики</h3>
+    <div id="replies">
+        {% include "board/_reply_list.html" %}
+    </div>
+
+    {% if user.is_authenticated and user != post.author %}
+        <hr>
+        <h3>Оставить отклик</h3>
+        <form id="reply-form" method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit" class="btn btn-primary">Отправить</button>
+        </form>
+
+        <script>
+            document.querySelector('#reply-form')?.addEventListener('submit', function (e) {
+                e.preventDefault();
+                const form = this;
+                fetch("", {
+                    method: "POST",
+                    body: new FormData(form),
+                    headers: {"X-Requested-With": "XMLHttpRequest"}
+                })
+                    .then(res => res.json())
+                    .then(data => {
+                        document.querySelector('#replies').innerHTML = data.html;
+                        form.reset();
+                    });
+            });
+        </script>
+    {% elif not user.is_authenticated %}
+        <p>Чтобы оставить отклик, <a href="{% url 'account_login' %}">войдите</a> в аккаунт.</p>
+    {% endif %}
+{% endblock %}

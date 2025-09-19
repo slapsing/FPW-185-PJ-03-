@@ -1,0 +1,11 @@
+<h2>Свежие новости MMORPGFAN</h2>
+<ul>
+    {% for post in posts %}
+        <li>
+            <a href="http://127.0.0.1:8000{% url 'post_detail' post.pk %}">
+                {{ post.title }}
+            </a> ({{ post.created_at|date:"d.m.Y" }})
+        </li>
+    {% endfor %}
+</ul>
+<p>Спасибо, что остаетесь с нами!</p>

@@ -1,0 +1,13 @@
+{% for reply in post.replies.all %}
+    <div class="reply border p-2 mb-2 {% if reply.accepted %}bg-success text-white{% endif %}">
+        <strong>{{ reply.author.username }}</strong>: {{ reply.text }}
+        {% if user == post.author and not reply.accepted %}
+            <form method="post" action="{% url 'reply_accept' reply.pk %}" style="display:inline;">
+                {% csrf_token %}
+                <button class="btn btn-sm btn-success" type="submit">Принять</button>
+            </form>
+        {% endif %}
+    </div>
+{% empty %}
+    <p>Откликов пока нет.</p>
+{% endfor %}

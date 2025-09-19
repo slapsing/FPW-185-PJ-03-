@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+    <div class="container mt-4">
+        <h2>{% if form.instance.pk %}Редактировать объявление{% else %}Создать объявление{% endif %}</h2>
+
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit" class="btn btn-primary">Сохранить</button>
+        </form>
+        <script src="{% static 'ckeditor/ckeditor/ckeditor.js' %}"></script>
+        <script>
+            CKEDITOR.replace('id_body');
+        </script>
+    </div>
+{% endblock %}

@@ -1,0 +1,19 @@
+{% load static %}
+<div class="card mb-3" style="max-width: 18rem;">
+
+    {% if post.author.profile.avatar %}
+        <img src="{{ post.author.profile.avatar.url }}" class="card-img-top" alt="{{ post.author.username }}">
+    {% endif %}
+    <div class="card-body">
+        <h5 class="card-title">
+            <a href="{% url 'user_posts' post.author.pk %}">{{ post.author.username }}</a>
+        </h5>
+        <p class="card-text">
+            Постов: {{ post.author.posts.count }}<br>
+            Откликов: {{ post.author.replies.count }}<br>
+            {% if post.author.profile.bio %}
+                {{ post.author.profile.bio|truncatewords:20 }}
+            {% endif %}
+        </p>
+    </div>
+</div>

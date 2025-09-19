@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Рейтинг постов{% endblock %}
+
+{% block content %}
+    <h1>Рейтинг постов</h1>
+    <ul>
+        {% for post in posts %}
+            <li>
+                <a href="{% url 'post_detail' post.pk %}">{{ post.title }}</a>
+                — откликов: {{ post.num_replies }}
+            </li>
+        {% empty %}
+            <li>Нет постов</li>
+        {% endfor %}
+    </ul>
+{% endblock %}

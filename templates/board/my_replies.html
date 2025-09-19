@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Мои отклики{% endblock %}
+
+{% block content %}
+    <div class="container py-4">
+        <h1>Мои отклики</h1>
+
+        <!-- Фильтр по постам -->
+        <form method="get" class="mb-3 d-flex align-items-center gap-2">
+            <label for="post">Фильтр по посту:</label>
+            <select name="post" id="post" class="form-select w-auto">
+                <option value="">Все посты</option>
+                {% for post in posts %}
+                    <option value="{{ post.id }}"
+                            {% if request.GET.post == post.id|stringformat:"s" %}selected{% endif %}>{{ post.title }}</option>
+                {% endfor %}
+            </select>
+
+            <!-- Сортировка по количеству откликов -->
+            <input type="hidden" name="order" id="order" value="{{ request.GET.order|default:'desc' }}">
+            <button type="submit" class="btn btn-secondary">
+                Количество
+                {% if request.GET.order == "asc" %}
+                    &#9650; <!-- стрелка вверх -->
+                {% else %}
+                    &#9660; <!-- стрелка вниз -->
+                {% endif %}
+            </button>
+        </form>
+
+        <table class="table table-bordered table-hover">
+            <thead>
+            <tr>
+                <th>Пост</th>
+                <th>Автор отклика</th>
+                <th>Текст отклика</th>
+                <th>Принят</th>
+                <th>Действия</th>
+                <th>Количество откликов на пост</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for reply in replies %}
+                <tr>
+                    <td><a href="{% url 'post_detail' reply.post.pk %}">{{ reply.post.title }}</a></td>
+                    <td>{{ reply.author.username }}</td>
+                    <td>{{ reply.text }}</td>
+                    <td>{% if reply.accepted %}✅{% else %}❌{% endif %}</td>
+                    <td>
+                        {% if not reply.accepted %}
+                            <form method="post" action="{% url 'reply_accept' reply.pk %}" style="display:inline-block">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-success">Принять</button>
+                            </form>
+                        {% endif %}
+                        <form method="post" action="{% url 'reply_delete' reply.id %}" style="display:inline-block">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-sm btn-danger">Удалить</button>
+                        </form>
+                    </td>
+                    <td>{{ reply.post.replies.count }}</td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="6" class="text-center">Откликов пока нет.</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const orderInput = document.getElementById("order");
+            const btn = document.querySelector('form button');
+
+            btn.addEventListener("click", function (e) {
+                e.preventDefault();
+                orderInput.value = (orderInput.value === "asc") ? "desc" : "asc";
+                btn.closest("form").submit();
+            });
+        });
+    </script>
+{% endblock %}

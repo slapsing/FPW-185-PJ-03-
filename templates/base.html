@@ -1,20 +1,85 @@
+{% load static %}
+
 <!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
     <title>{% block title %}MMORPGFAN{% endblock %}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        /* Фон  */
+        body {
+            background-image: url("{% static 'images/fon.jpg' %}");
+            background-size: cover; /* растянуть на весь экран */
+            background-position: center; /* центрирование */
+            background-repeat: no-repeat; /* не повторять */
+            background-attachment: fixed; /* фон фиксированный при скролле */
+            min-height: 100vh;
+            position: relative;
+        }
+
+        /* Полупрозрачный оверлей для улучшения читаемости текста */
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.35);
+            z-index: -1;
+        }
+
+        /* Основной контент с отступами */
+        main {
+            padding: 2rem 1rem;
+            min-height: 80vh;
+        }
+
+        /* Навбар поверх оверлея */
+        nav.navbar {
+            background-color: rgba(255, 255, 255, 0.9) !important;
+        }
+
+        footer {
+            background-color: rgba(255, 255, 255, 0.9);
+        }
+    </style>
 </head>
 <body>
 <!-- Navbar -->
-<nav class="navbar navbar-expand-lg navbar-light bg-light">
+<nav class="navbar navbar-expand-lg navbar-light bg-light shadow-sm">
     <div class="container">
         <a class="navbar-brand" href="{% url 'index' %}">MMORPGFAN</a>
-        <div class="collapse navbar-collapse">
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarContent">
             <ul class="navbar-nav ms-auto">
                 {% if user.is_authenticated %}
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'profile' %}"> {{ user.username }}</a>
+                        <a class="nav-link" href="{% url 'profile' %}">{{ user.username }}</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'post_create' %}">Создать пост</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'post_ranking' %}">Рейтинг постов</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'my_posts' %}">Мои посты</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'my_replies' %}">Мои отклики</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'notifications' %}">
+                            Уведомления
+                            {% if unread_notifications > 0 %}
+                                <span class="badge bg-danger">{{ unread_notifications }}</span>
+                            {% endif %}
+                        </a>
                     </li>
                     <li class="nav-item">
                         <a class="btn btn-outline-danger btn-sm ms-2" href="{% url 'account_logout' %}">Выход</a>
@@ -27,14 +92,13 @@
                         <a class="btn btn-outline-success btn-sm ms-2" href="{% url 'account_signup' %}">Регистрация</a>
                     </li>
                 {% endif %}
-
             </ul>
         </div>
     </div>
 </nav>
 
 <!-- Контент -->
-<main>
+<main class="container">
     {% block content %}{% endblock %}
 </main>
 
@@ -42,5 +106,13 @@
 <footer class="text-center py-3">
     <small>&copy; 2025 MMORPGFAN</small>
 </footer>
+
+<!-- Скрипты -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="{% static 'ckeditor/ckeditor/ckeditor.js' %}"></script>
+
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+<script src="{% static 'js/infinite_scroll.js' %}"></script>
 </body>
 </html>
